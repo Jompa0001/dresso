@@ -1,0 +1,37 @@
+{
+  "name": "dresso-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev --name init",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:seed": "ts-node --compiler-options {\"module\": \"CommonJS\"} prisma/seed.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "3.642.0",
+    "@aws-sdk/s3-request-presigner": "3.642.0",
+    "@prisma/client": "5.14.0",
+    "framer-motion": "11.0.8",
+    "lucide-react": "0.441.0",
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "stripe": "14.25.0",
+    "zod": "3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "20.11.30",
+    "@types/react": "18.2.66",
+    "@types/react-dom": "18.2.22",
+    "autoprefixer": "10.4.19",
+    "postcss": "8.4.38",
+    "prisma": "5.14.0",
+    "tailwindcss": "3.4.4",
+    "ts-node": "10.9.2",
+    "typescript": "5.4.5"
+  }
+}

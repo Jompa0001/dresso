@@ -1,0 +1,102 @@
+datasource db { provider = "postgresql"; url = env("DATABASE_URL") }
+generator client { provider = "prisma-client-js" }
+
+enum Role { USER ADMIN }
+enum ListingStatus { ACTIVE SOLD HIDDEN REMOVED }
+enum Condition { NEW LIKE_NEW GOOD OK }
+enum DressLength { MINI MIDI MAXI }
+enum Silhouette { A_LINE MERMAID SHEATH BALLGOWN EMPIRE TWO_PIECE }
+enum Material { SATIN SILK CHIFFON LACE VELVET SEQUINS TULLE OTHER }
+enum Color { BLACK WHITE RED BLUE GREEN PINK PURPLE BEIGE SILVER GOLD MULTI OTHER }
+
+model User {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  email     String    @unique
+  name      String?
+  phone     String?
+  role      Role      @default(USER)
+  listings  Listing[]
+  favorites Favorite[]
+  messages  Message[] @relation("UserMessages")
+  payments  Payment[]
+}
+
+model Listing {
+  id          String        @id @default(cuid())
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  title       String
+  description String
+  price       Int
+  currency    String         @default("SEK")
+  size        String?
+  sizeText    String?
+  brand       String?
+  color       Color?
+  material    Material?
+  length      DressLength?
+  silhouette  Silhouette?
+  neckline    String?
+  sleeve      String?
+  condition   Condition      @default(GOOD)
+  images      String[]
+  location    String?
+  status      ListingStatus  @default(ACTIVE)
+  publishPaid Boolean        @default(false)
+  expiresAt   DateTime?
+
+  highlight   Boolean       @default(false)
+  bumpedAt    DateTime?
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  @@index([status, createdAt])
+  @@index([price])
+  @@index([highlight, bumpedAt, createdAt])
+}
+
+model Favorite {
+  userId    String
+  listingId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  listing   Listing  @relation(fields: [listingId], references: [id])
+  @@id([userId, listingId])
+}
+
+model Conversation {
+  id         String   @id @default(cuid())
+  listingId  String
+  buyerId    String
+  sellerId   String
+  createdAt  DateTime @default(now())
+  messages   Message[]
+
+  @@index([listingId, buyerId, sellerId])
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String?
+  listingId      String
+  fromUserId     String
+  toUserId       String
+  body           String
+  createdAt      DateTime @default(now())
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  userId      String
+  listingId   String?
+  amount      Int
+  currency    String
+  provider    String
+  providerRef String?
+  status      String
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
