@@ -149,10 +149,15 @@ model Message {
   listingId   String?
   listing     Listing? @relation("ListingMessages", fields: [listingId], references: [id])
 
+  // Konversation (för chatten)
+  conversationId String?
+
   @@index([senderId])
   @@index([recipientId])
   @@index([listingId])
+  @@index([conversationId])
 }
+
 
 model Payment {
   id              String   @id @default(cuid())
