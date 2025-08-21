@@ -1,4 +1,5 @@
-import { PrismaClient, Color, Material, DressLength, Condition } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
+const { Color, Material, DressLength, Condition } = Prisma.$Enums;
 const prisma = new PrismaClient();
 const SIZES = ["EU32","EU34","EU36","EU38","EU40","EU42","EU44","EU46","EU48"] as const;
 const BRANDS = ["NA-KD","Bubbleroom","ASOS","Nelly","By Malina","Zara","H&M","House of CB"];
