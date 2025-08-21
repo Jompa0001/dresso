@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   if (!key || !whsec) return NextResponse.json({ error: "Stripe ej konfigurerat" }, { status: 400 });
   const sig = req.headers.get("stripe-signature") as string;
   const raw = await req.text();
-  const stripe = new Stripe(key, { apiVersion: "2024-06-20" });
+  const stripe = new Stripe(key);
   let event: Stripe.Event;
   try { event = stripe.webhooks.constructEvent(raw, sig, whsec); } catch (err: any) { return NextResponse.json({ error: `Webhook error: ${err.message}` }, { status: 400 }); }
   if (event.type === "checkout.session.completed") {
