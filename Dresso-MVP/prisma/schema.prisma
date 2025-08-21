@@ -73,8 +73,12 @@ model User {
   listings         Listing[]                 // annonser som säljare
   boughtListings   Listing[] @relation("ListingBuyer") // annonser köpta av användaren
   favorites        Favorite[]
-  messagesSent     Message[] @relation("MessagesSent")
-  messagesReceived Message[] @relation("MessagesReceived")
+  messagesSent      Message[]      @relation("MessagesSent")
+  messagesReceived  Message[]      @relation("MessagesReceived")
+  // (valfritt) kopplingar till konversationer:
+  // conversationsAsSeller Conversation[] @relation("ConversationSeller")
+  // conversationsAsBuyer  Conversation[] @relation("ConversationBuyer")
+
   payments         Payment[]
 
   @@index([email])
@@ -117,6 +121,29 @@ model Listing {
   @@index([status, createdAt])
   @@index([length, color, material])
 }
+model Conversation {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+
+  // Vilken annons chatten gäller
+  listingId  String
+  listing    Listing  @relation(fields: [listingId], references: [id])
+
+  // Parterna i chatten
+  sellerId   String
+  seller     User     @relation("ConversationSeller", fields: [sellerId], references: [id])
+
+  buyerId    String
+  buyer      User     @relation("ConversationBuyer", fields: [buyerId], references: [id])
+
+  // Meddelanden i denna konversation
+  messages   Message[] @relation("ConversationMessages")
+
+  @@unique([listingId, sellerId, buyerId])
+  @@index([listingId])
+  @@index([sellerId])
+  @@index([buyerId])
+}
 
 model Favorite {
   id        String   @id @default(cuid())
@@ -134,23 +161,23 @@ model Favorite {
 }
 
 model Message {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  content     String
+  id            String        @id @default(cuid())
+  createdAt     DateTime      @default(now())
+  content       String
 
   // Avsändare/mottagare
-  senderId    String
-  recipientId String
-
-  sender      User    @relation("MessagesSent",     fields: [senderId],    references: [id])
-  recipient   User    @relation("MessagesReceived", fields: [recipientId], references: [id])
+  senderId      String
+  recipientId   String
+  sender        User          @relation("MessagesSent",     fields: [senderId],    references: [id])
+  recipient     User          @relation("MessagesReceived", fields: [recipientId], references: [id])
 
   // Kopplat till annons (valfritt)
-  listingId   String?
-  listing     Listing? @relation("ListingMessages", fields: [listingId], references: [id])
+  listingId     String?
+  listing       Listing?      @relation("ListingMessages", fields: [listingId], references: [id])
 
-  // Konversation (för chatten)
+  // Kopplat till konversation (krävs av API:t)
   conversationId String?
+  conversation   Conversation? @relation("ConversationMessages", fields: [conversationId], references: [id])
 
   @@index([senderId])
   @@index([recipientId])
