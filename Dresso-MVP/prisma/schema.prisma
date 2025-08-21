@@ -73,13 +73,16 @@ model User {
   role      Role       @default(USER)
 
   // Relationer
-  listings          Listing[]                // annonser som säljare
+  listings          Listing[]                // säljarens annonser
+  boughtListings    Listing[] @relation("ListingBuyer")  // <-- LÄGG TILL DENNA RAD
   favorites         Favorite[]
   messagesSent      Message[] @relation("MessagesSent")
   messagesReceived  Message[] @relation("MessagesReceived")
   payments          Payment[]
 
   @@index([email])
+}
+
 }
 
 model Listing {
