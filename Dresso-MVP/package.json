@@ -2,14 +2,19 @@
   "name": "dresso-mvp",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "postinstall": "prisma generate",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate deploy",
-    "vercel:build": "prisma generate && next build"
+    "scripts": {
+  "dev": "next dev",
+  "build": "next build",
+  "prebuild": "prisma migrate deploy",
+  "start": "next start",
+
+  "postinstall": "prisma generate",
+
+  "prisma:generate": "prisma generate",
+  "prisma:migrate": "prisma migrate dev --name init",
+  "prisma:deploy": "prisma migrate deploy",
+  "prisma:seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.614.0",
