@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";// trigger redeploy
 import { prisma } from "@/lib/db";
 import Stripe from "stripe";
 const FEE_BUMP = Number(process.env.BUMP_FEE_SEK || 19);
