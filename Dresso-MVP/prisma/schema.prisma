@@ -1,102 +1,173 @@
-datasource db { provider = "postgresql"; url = env("DATABASE_URL") }
-generator client { provider = "prisma-client-js" }
+// ---------- Prisma Client & DB ----------
 
-enum Role { USER ADMIN }
-enum ListingStatus { ACTIVE SOLD HIDDEN REMOVED }
-enum Condition { NEW LIKE_NEW GOOD OK }
-enum DressLength { MINI MIDI MAXI }
-enum Silhouette { A_LINE MERMAID SHEATH BALLGOWN EMPIRE TWO_PIECE }
-enum Material { SATIN SILK CHIFFON LACE VELVET SEQUINS TULLE OTHER }
-enum Color { BLACK WHITE RED BLUE GREEN PINK PURPLE BEIGE SILVER GOLD MULTI OTHER }
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ListingStatus {
+  ACTIVE
+  SOLD
+  HIDDEN
+  REMOVED
+}
+
+enum Condition {
+  NEW
+  LIKE_NEW
+  GOOD
+  OK
+}
+
+enum DressLength {
+  MINI
+  MIDI
+  MAXI
+}
+
+enum Material {
+  SATIN
+  SILK
+  CHIFFON
+  LACE
+  VELVET
+  SEQUINS
+  TULLE
+  OTHER
+}
+
+enum Color {
+  BLACK
+  WHITE
+  RED
+  BLUE
+  GREEN
+  PINK
+  PURPLE
+  BEIGE
+  SILVER
+  GOLD
+  MULTI
+  OTHER
+}
+
+// ---------- Modeller ----------
 
 model User {
-  id        String    @id @default(cuid())
-  createdAt DateTime  @default(now())
-  email     String    @unique
+  id        String     @id @default(cuid())
+  createdAt DateTime   @default(now())
+  email     String     @unique
   name      String?
   phone     String?
-  role      Role      @default(USER)
-  listings  Listing[]
-  favorites Favorite[]
-  messages  Message[] @relation("UserMessages")
-  payments  Payment[]
+  role      Role       @default(USER)
+
+  // Relationer
+  listings   Listing[]                // annonser som säljare
+  favorites  Favorite[]
+  messages   Message[]  @relation("UserMessages")
+  payments   Payment[]
+
+  @@index([email])
 }
 
 model Listing {
-  id          String        @id @default(cuid())
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id          String         @id @default(cuid())
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
   title       String
   description String
-  price       Int
-  currency    String         @default("SEK")
-  size        String?
-  sizeText    String?
+  price       Int            // SEK i heltal (t.ex. 1299)
+  size        String         // "EU32"..."EU48" etc
   brand       String?
-  color       Color?
-  material    Material?
-  length      DressLength?
-  silhouette  Silhouette?
-  neckline    String?
-  sleeve      String?
-  condition   Condition      @default(GOOD)
-  images      String[]
-  location    String?
+  images      String[]       // array av bild-URLs
+
+  // Filterbara fält
+  length      DressLength
+  color       Color
+  material    Material
+  condition   Condition
   status      ListingStatus  @default(ACTIVE)
-  publishPaid Boolean        @default(false)
-  expiresAt   DateTime?
 
-  highlight   Boolean       @default(false)
-  bumpedAt    DateTime?
+  // “Bump”/Highlight
+  bumpedAt        DateTime?
+  highlightUntil  DateTime?
 
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
+  // Relationer
+  sellerId   String
+  seller     User            @relation(fields: [sellerId], references: [id])
+  buyerId    String?
+  buyer      User?           @relation("ListingBuyer", fields: [buyerId], references: [id])
 
+  favorites  Favorite[]
+  messages   Message[]       @relation("ListingMessages")
+  payments   Payment[]
+
+  @@index([sellerId])
   @@index([status, createdAt])
-  @@index([price])
-  @@index([highlight, bumpedAt, createdAt])
+  @@index([length, color, material])
 }
 
 model Favorite {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
   userId    String
   listingId String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
-  listing   Listing  @relation(fields: [listingId], references: [id])
-  @@id([userId, listingId])
-}
 
-model Conversation {
-  id         String   @id @default(cuid())
-  listingId  String
-  buyerId    String
-  sellerId   String
-  createdAt  DateTime @default(now())
-  messages   Message[]
+  user      User    @relation(fields: [userId], references: [id])
+  listing   Listing @relation(fields: [listingId], references: [id])
 
-  @@index([listingId, buyerId, sellerId])
+  @@unique([userId, listingId]) // en favorit per annons per användare
+  @@index([userId])
+  @@index([listingId])
 }
 
 model Message {
-  id             String   @id @default(cuid())
-  conversationId String?
-  listingId      String
-  fromUserId     String
-  toUserId       String
-  body           String
-  createdAt      DateTime @default(now())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  content   String
+
+  // Avsändare/mottagare
+  senderId   String
+  recipientId String
+
+  sender     User    @relation("UserMessages", fields: [senderId], references: [id])
+  recipient  User    @relation("UserMessages", fields: [recipientId], references: [id])
+
+  // Kopplat till annons (valfritt)
+  listingId String?
+  listing   Listing? @relation("ListingMessages", fields: [listingId], references: [id])
+
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([listingId])
 }
 
 model Payment {
-  id          String   @id @default(cuid())
-  userId      String
-  listingId   String?
-  amount      Int
-  currency    String
-  provider    String
-  providerRef String?
-  status      String
-  createdAt   DateTime @default(now())
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  amount          Int      // SEK i heltal
+  currency        String   @default("SEK")
+  status          String   // "pending" | "paid" | "failed" etc
+  stripeSessionId String   @unique
 
-  user User @relation(fields: [userId], references: [id])
+  userId    String
+  listingId String
+
+  user      User    @relation(fields: [userId], references: [id])
+  listing   Listing @relation(fields: [listingId], references: [id])
+
+  @@index([userId])
+  @@index([listingId])
 }
