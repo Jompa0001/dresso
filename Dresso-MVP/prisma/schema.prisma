@@ -69,20 +69,22 @@ model User {
   phone     String?
   role      Role      @default(USER)
 
-  // Relations
-  listings         Listing[]                 // annonser som säljare
-  boughtListings   Listing[] @relation("ListingBuyer") // annonser köpta av användaren
-  favorites        Favorite[]
-  messagesSent      Message[]      @relation("MessagesSent")
-  messagesReceived  Message[]      @relation("MessagesReceived")
-  // (valfritt) kopplingar till konversationer:
-  // conversationsAsSeller Conversation[] @relation("ConversationSeller")
-  // conversationsAsBuyer  Conversation[] @relation("ConversationBuyer")
+  // Relationer
+  listings             Listing[]                 // annonser som säljare
+  boughtListings       Listing[] @relation("ListingBuyer") // annonser köpta av användaren
+  favorites            Favorite[]
+  messagesSent         Message[] @relation("MessagesSent")
+  messagesReceived     Message[] @relation("MessagesReceived")
 
-  payments         Payment[]
+  // BACK-RELATIONER till Conversation (läggs till nu)
+  conversationsAsSeller Conversation[] @relation("ConversationSeller")
+  conversationsAsBuyer  Conversation[] @relation("ConversationBuyer")
+
+  payments             Payment[]
 
   @@index([email])
 }
+
 
 model Listing {
   id             String         @id @default(cuid())
@@ -113,14 +115,18 @@ model Listing {
   buyerId  String?
   buyer    User?    @relation("ListingBuyer", fields: [buyerId], references: [id])
 
-  favorites Favorite[]
-  messages  Message[] @relation("ListingMessages")
-  payments  Payment[]
+  favorites    Favorite[]
+  messages     Message[]      @relation("ListingMessages")
+  payments     Payment[]
+
+  // BACK-RELATION till Conversation (läggs till nu)
+  conversations Conversation[]
 
   @@index([sellerId])
   @@index([status, createdAt])
   @@index([length, color, material])
 }
+
 model Conversation {
   id         String   @id @default(cuid())
   createdAt  DateTime @default(now())
