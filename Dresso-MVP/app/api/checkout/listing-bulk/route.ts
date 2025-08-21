@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   const successUrl = `${origin}/checkout/success?type=bulk&ids=${encodeURIComponent(listingIds.join(","))}`;
   const cancelUrl = `${origin}/listings/new/bulk`;
   if (!key) { await prisma.listing.updateMany({ where: { id: { in: listingIds } }, data: { publishPaid: true, status: "ACTIVE" } }); return NextResponse.json({ url: successUrl }); }
-  const stripe = new Stripe(key, { apiVersion: "2024-06-20" });
+  const stripe = new Stripe(key);
   const session = await stripe.checkout.sessions.create({ mode: "payment", success_url: successUrl, cancel_url: cancelUrl, line_items: [{ price_data: { currency: "sek", product_data: { name: `Publiceringsavgift (${n} annonser)` }, unit_amount: fee * 100 }, quantity: 1 }], metadata: { type: "bulk", ids: listingIds.join(",") } });
   return NextResponse.json({ url: session.url });
 }
