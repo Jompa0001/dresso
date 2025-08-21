@@ -1,5 +1,4 @@
 // ---------- Prisma Client & DB ----------
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,7 +9,6 @@ datasource db {
 }
 
 // ---------- Enums ----------
-
 enum Role {
   USER
   ADMIN
@@ -62,60 +60,58 @@ enum Color {
   OTHER
 }
 
-// ---------- Modeller ----------
-
+// ---------- Models ----------
 model User {
-  id        String     @id @default(cuid())
-  createdAt DateTime   @default(now())
-  email     String     @unique
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  email     String    @unique
   name      String?
   phone     String?
-  role      Role       @default(USER)
+  role      Role      @default(USER)
 
-  // Relationer
-  listings          Listing[]                // säljarens annonser
-  boughtListings    Listing[] @relation("ListingBuyer")  // <-- LÄGG TILL DENNA RAD
-  favorites         Favorite[]
-  messagesSent      Message[] @relation("MessagesSent")
-  messagesReceived  Message[] @relation("MessagesReceived")
-  payments          Payment[]
+  // Relations
+  listings         Listing[]                 // annonser som säljare
+  boughtListings   Listing[] @relation("ListingBuyer") // annonser köpta av användaren
+  favorites        Favorite[]
+  messagesSent     Message[] @relation("MessagesSent")
+  messagesReceived Message[] @relation("MessagesReceived")
+  payments         Payment[]
 
   @@index([email])
 }
 
-}
-
 model Listing {
-  id          String         @id @default(cuid())
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  title       String
-  description String
-  price       Int            // SEK i heltal
-  size        String         // "EU32"..."EU48" etc
-  brand       String?
-  images      String[]       // array av bild-URLs
+  id             String         @id @default(cuid())
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  title          String
+  description    String
+  price          Int            // SEK i heltal
+  size           String         // "EU32"..."EU48" etc
+  brand          String?
+  images         String[]       // bild-URLs
 
   // Filterbara fält
-  length      DressLength
-  color       Color
-  material    Material
-  condition   Condition
-  status      ListingStatus  @default(ACTIVE)
+  length         DressLength
+  color          Color
+  material       Material
+  condition      Condition
+  status         ListingStatus  @default(ACTIVE)
 
-  // “Bump”/Highlight
-  bumpedAt        DateTime?
-  highlightUntil  DateTime?
+  // Boost
+  bumpedAt       DateTime?
+  highlightUntil DateTime?
 
   // Relationer
-  sellerId   String
-  seller     User            @relation(fields: [sellerId], references: [id])
-  buyerId    String?
-  buyer      User?           @relation("ListingBuyer", fields: [buyerId], references: [id])
+  sellerId String
+  seller   User     @relation(fields: [sellerId], references: [id])
 
-  favorites  Favorite[]
-  messages   Message[]       @relation("ListingMessages")
-  payments   Payment[]
+  buyerId  String?
+  buyer    User?    @relation("ListingBuyer", fields: [buyerId], references: [id])
+
+  favorites Favorite[]
+  messages  Message[] @relation("ListingMessages")
+  payments  Payment[]
 
   @@index([sellerId])
   @@index([status, createdAt])
@@ -132,22 +128,22 @@ model Favorite {
   user      User    @relation(fields: [userId], references: [id])
   listing   Listing @relation(fields: [listingId], references: [id])
 
-  @@unique([userId, listingId]) // en favorit per annons per användare
+  @@unique([userId, listingId])
   @@index([userId])
   @@index([listingId])
 }
 
 model Message {
-  id         String   @id @default(cuid())
-  createdAt  DateTime @default(now())
-  content    String
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  content     String
 
   // Avsändare/mottagare
   senderId    String
   recipientId String
 
-  sender      User    @relation("MessagesSent",      fields: [senderId],    references: [id])
-  recipient   User    @relation("MessagesReceived",  fields: [recipientId], references: [id])
+  sender      User    @relation("MessagesSent",     fields: [senderId],    references: [id])
+  recipient   User    @relation("MessagesReceived", fields: [recipientId], references: [id])
 
   // Kopplat till annons (valfritt)
   listingId   String?
@@ -161,7 +157,7 @@ model Message {
 model Payment {
   id              String   @id @default(cuid())
   createdAt       DateTime @default(now())
-  amount          Int      // SEK i heltal
+  amount          Int      // SEK
   currency        String   @default("SEK")
   status          String   // "pending" | "paid" | "failed" etc
   stripeSessionId String   @unique
