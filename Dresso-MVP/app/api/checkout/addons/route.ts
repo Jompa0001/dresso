@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   if (addons.includes("bump")) line_items.push({ price_data: { currency: "sek", product_data: { name: "Lyft annons (Bump)" }, unit_amount: FEE_BUMP * 100 }, quantity: 1 });
   if (addons.includes("highlight")) line_items.push({ price_data: { currency: "sek", product_data: { name: "Highlight" }, unit_amount: FEE_HIGHLIGHT * 100 }, quantity: 1 });
   if (!key) { await prisma.listing.update({ where: { id: listingId }, data: { bumpedAt: addons.includes("bump") ? new Date() : undefined, highlight: addons.includes("highlight") ? true : undefined } }); return NextResponse.json({ url: successUrl }); }
-  const stripe = new Stripe(key, { apiVersion: "2024-06-20" });
+  const stripe = new Stripe(key);
   const session = await stripe.checkout.sessions.create({ mode: "payment", success_url: successUrl, cancel_url: cancelUrl, line_items, metadata: { listingId, addons: addons.join(","), type: "addons" } });
   return NextResponse.json({ url: session.url });
 }
