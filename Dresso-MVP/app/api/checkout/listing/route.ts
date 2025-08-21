@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   if (!listing) return NextResponse.json({ error: "Annons saknas" }, { status: 404 });
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) { await prisma.listing.update({ where: { id: listingId }, data: { publishPaid: true, status: "ACTIVE" } }); return NextResponse.json({ url: `/listings/${listingId}` }); }
-  const stripe = new Stripe(key, { apiVersion: "2024-06-20" });
+  const stripe = new Stripe(key);
   const origin = process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_URL ? "https://" + process.env.VERCEL_URL : "http://localhost:3000");
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
