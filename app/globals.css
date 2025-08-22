@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #fffaf8;
+  --primary: #9d6b74;
+  --primary-600: #8a5f67;
+  --accent: #e6c7b8;
+  --text: #1f2937;
+}
+body { background: var(--bg); color: var(--text); }
+.container { @apply max-w-6xl mx-auto px-4; }
+.card { @apply rounded-2xl border border-slate-200 bg-white shadow-sm; }
+.btn { @apply rounded-xl px-4 py-2 transition; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-600); }
+.btn-outline { @apply border border-slate-300; }
+.input { @apply w-full border border-slate-300 rounded-xl p-3; }
+.select { @apply w-full border border-slate-300 rounded-xl p-3; }
+.header-logo { width: 32px; height: 32px; border-radius: 10px; background: var(--primary); color: white; display: grid; place-items: center; font-weight: 600; }
