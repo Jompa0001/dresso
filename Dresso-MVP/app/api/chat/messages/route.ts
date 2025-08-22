@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/db";
 
 // Hämta meddelanden i en konversation
 export async function GET(req: NextRequest) {
@@ -28,18 +26,11 @@ export async function POST(req: NextRequest) {
   };
 
   if (!conversationId || !body) {
-    return NextResponse.json(
-      { error: "conversationId och body krävs" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "conversationId och body krävs" }, { status: 400 });
   }
 
-  const convo = await prisma.conversation.findUnique({
-    where: { id: conversationId },
-  });
-  if (!convo) {
-    return NextResponse.json({ error: "Konversation saknas" }, { status: 404 });
-  }
+  const convo = await prisma.conversation.findUnique({ where: { id: conversationId } });
+  if (!convo) return NextResponse.json({ error: "Konversation saknas" }, { status: 404 });
 
   const senderId = from === "seller" ? convo.sellerId : convo.buyerId;
   const recipientId = from === "seller" ? convo.buyerId : convo.sellerId;
@@ -48,15 +39,11 @@ export async function POST(req: NextRequest) {
     data: {
       conversationId,
       listingId: convo.listingId,
-      senderId,         // <-- matchar schema
-      recipientId,      // <-- matchar schema
-      content: body,    // <-- matchar schema
+      senderId,
+      recipientId,
+      content: body,
     },
   });
 
-  return NextResponse.json({
-    ok: true,
-    id: msg.id,
-    createdAt: msg.createdAt,
-  });
+  return NextResponse.json({ ok: true, id: msg.id, createdAt: msg.createdAt });
 }
